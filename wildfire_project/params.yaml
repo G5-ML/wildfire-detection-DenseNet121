@@ -1,0 +1,55 @@
+seed: 42
+
+data:
+  archives_dir: datasets
+  processed_dir: data/processed
+  class_names:
+    - nowildfire
+    - wildfire
+  image_size: [224, 224]
+  batch_size: 32
+  cache: false
+  verify_images: true
+
+model:
+  backbone: DenseNet121
+  imagenet_weights: imagenet
+  dense_units: 256
+  dropout_rate: 0.4
+  l2_regularization: 0.0001
+  label_smoothing: 0.05
+  augmentation:
+    rotation: 0.08
+    zoom: 0.12
+    contrast: 0.15
+    translation: 0.08
+
+training:
+  head_epochs: 8
+  fine_tune_epochs: 18
+  learning_rate: 0.001
+  fine_tune_learning_rate: 0.00001
+  unfreeze_last_n: 60
+  checkpoint_every_n_epochs: 2
+  early_stopping_patience: 6
+  reduce_lr_patience: 3
+  min_learning_rate: 0.0000001
+  monitor: val_pr_auc
+  mixed_precision: true
+
+evaluation:
+  threshold: auto
+  beta: 2.0
+
+paths:
+  artifacts_dir: artifacts
+  model_dir: artifacts/models
+  reports_dir: artifacts/reports
+  logs_dir: artifacts/logs
+
+mlflow:
+  enabled: true
+  tracking_uri: file:./mlruns
+  experiment_name: wildfire-densenet
+  registered_model_name: wildfire-densenet121
+

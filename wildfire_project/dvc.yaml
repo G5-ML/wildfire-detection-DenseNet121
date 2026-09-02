@@ -1,0 +1,61 @@
+stages:
+  prepare:
+    cmd: python -m wildfire_ml --config params.yaml prepare
+    deps:
+      - datasets/train.zip
+      - datasets/valid.zip
+      - datasets/test.zip
+      - src/wildfire_ml/data.py
+      - src/wildfire_ml/config.py
+    params:
+      - seed
+      - data
+    outs:
+      - data/processed
+
+  train:
+    cmd: python -m wildfire_ml --config params.yaml train
+    deps:
+      - data/processed
+      - src/wildfire_ml/model.py
+      - src/wildfire_ml/training.py
+      - src/wildfire_ml/data.py
+    params:
+      - seed
+      - data.image_size
+      - data.batch_size
+      - model
+      - training
+      - mlflow
+    outs:
+      - artifacts/models
+      - artifacts/logs
+
+  evaluate:
+    cmd: python -m wildfire_ml --config params.yaml evaluate
+    deps:
+      - data/processed/valid
+      - data/processed/test
+      - artifacts/models/final.keras
+      - artifacts/logs/training_summary.json
+      - src/wildfire_ml/evaluation.py
+    params:
+      - data.image_size
+      - data.batch_size
+      - evaluation
+    metrics:
+      - artifacts/reports/dvc_metrics.json:
+          cache: false
+    plots:
+      - artifacts/reports/test/predictions.csv:
+          x: true_label
+          y: wildfire_probability
+    outs:
+      - artifacts/reports/test/confusion_matrix.png:
+          cache: false
+      - artifacts/reports/test/roc_curve.png:
+          cache: false
+      - artifacts/reports/test/precision_recall_curve.png:
+          cache: false
+      - artifacts/reports/validation:
+          cache: false
